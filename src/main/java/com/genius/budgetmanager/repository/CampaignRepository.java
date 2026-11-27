@@ -15,6 +15,7 @@ public class CampaignRepository {
     private final List<Campaign> campaigns = new ArrayList<>();
     private final List<Expense> expenses = new ArrayList<>();
     private long nextExpenseId = 11;
+    private long nextCampaignId = 7;
 
     public CampaignRepository() {
         loadData();
@@ -53,6 +54,14 @@ public class CampaignRepository {
     public Optional<Campaign> findById(Long id) {
         return campaigns.stream().filter(c -> c.getId().equals(id)).findFirst();
     }
+
+    public Campaign saveCampaign(Campaign campaign) 
+    {
+    campaign.setId(nextCampaignId++);
+    campaigns.add(campaign);
+    return campaign;
+    }
+
 
     public List<Expense> findExpensesByCampaignId(Long campaignId) {
         return expenses.stream()

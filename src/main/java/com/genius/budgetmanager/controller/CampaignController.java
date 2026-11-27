@@ -3,11 +3,14 @@ package com.genius.budgetmanager.controller;
 import com.genius.budgetmanager.model.BudgetSummary;
 import com.genius.budgetmanager.model.BudgetUpdateRequest;
 import com.genius.budgetmanager.model.Campaign;
+import com.genius.budgetmanager.model.CreateCampaignRequest;
 import com.genius.budgetmanager.model.Expense;
 import com.genius.budgetmanager.model.GlobalBudgetSummary;
 import com.genius.budgetmanager.service.CampaignService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,13 +27,25 @@ public class CampaignController {
     private CampaignService campaignService;
 
     @GetMapping
-    @Operation(summary = "Listar campanas", description = "Retorna todas las campanas. Acepta filtro opcional por status.")
-    public ResponseEntity<List<Campaign>> getCampaigns(@RequestParam(required = false) String status) {
-        if (status != null && !status.isBlank()) {
-            return ResponseEntity.ok(campaignService.getCampaignsByStatus(status));
-        }
-        return ResponseEntity.ok(campaignService.getAllCampaigns());
+    @Operation(summary = "Listar campanas", description = "Filtros opcionales: status y client.")
+    public ResponseEntity<List<Campaign>> getCampaigns(
+        @RequestParam(required = false) String status,
+        @RequestParam(required = false) String client) {
+    return ResponseEntity.ok(campaignService.getCampaigns(status, client));
+   }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Obtener campana por ID")
+    public ResponseEntity<Campaign> getCampaignById(@PathVariable Long id) {
+        return ResponseEntity.ok(campaignService.getCampaignById(id));
     }
+ 
+
+   @PostMapping
+   @Operation(summary = "Crear una campana")
+   public ResponseEntity<Campaign> createCampaign(@Valid @RequestBody CreateCampaignRequest request) {
+      return ResponseEntity.status(HttpStatus.CREATED).body(campaignService.createCampaign(request));
+   }
 
     @GetMapping("/summary")
     @Operation(summary = "Resumen global de presupuesto", description = "Agrega KPIs de todas las campanas activas: total asignado, gastado, disponible y porcentaje de consumo.")
@@ -38,11 +53,6 @@ public class CampaignController {
         return ResponseEntity.ok(campaignService.getGlobalBudgetSummary());
     }
 
-    @GetMapping("/{id}")
-    @Operation(summary = "Obtener campana por ID")
-    public ResponseEntity<Campaign> getCampaignById(@PathVariable Long id) {
-        return ResponseEntity.ok(campaignService.getCampaignById(id));
-    }
 
     @GetMapping("/{id}/summary")
     @Operation(summary = "Resumen de presupuesto", description = "Retorna el resumen de uso de presupuesto de la campana.")

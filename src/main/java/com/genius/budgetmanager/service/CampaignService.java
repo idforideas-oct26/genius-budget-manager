@@ -2,6 +2,7 @@ package com.genius.budgetmanager.service;
 
 import com.genius.budgetmanager.model.BudgetSummary;
 import com.genius.budgetmanager.model.Campaign;
+import com.genius.budgetmanager.model.CreateCampaignRequest;
 import com.genius.budgetmanager.model.Expense;
 import com.genius.budgetmanager.model.GlobalBudgetSummary;
 import com.genius.budgetmanager.repository.CampaignRepository;
@@ -17,20 +18,30 @@ public class CampaignService {
     @Autowired
     private CampaignRepository repository;
 
-    public List<Campaign> getAllCampaigns() {
-        return repository.findAll();
-    }
-
-    public List<Campaign> getCampaignsByStatus(String status) {
-        return repository.findAll().stream()
-                .filter(c -> c.getType().equalsIgnoreCase(status))
-                .collect(Collectors.toList());
+    public List<Campaign> getCampaigns(String status, String client)
+     {
+    return repository.findAll().stream()
+            .filter(c -> status == null || status.isBlank() || c.getStatus().equalsIgnoreCase(status))
+            .filter(c -> client == null || client.isBlank() || c.getClient().equalsIgnoreCase(client))
+            .collect(Collectors.toList());
     }
 
     public Campaign getCampaignById(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Campaign not found: " + id));
     }
+
+    public Campaign createCampaign(CreateCampaignRequest request) {
+    String currency = request.getCurrency() != null ? request.getCurrency() : "ARS";
+    Campaign campaign = new Campaign(null, request.getName(), request.getClient(),
+            request.getType(), "draft", request.getBudget(), 0.0, currency,
+            request.getStartDate(), request.getEndDate());
+    return repository.saveCampaign(campaign);
+   }
+
+
+
+
 
     public BudgetSummary getBudgetSummary(Long campaignId) {
         Campaign campaign = getCampaignById(campaignId);
